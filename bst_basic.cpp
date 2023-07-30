@@ -39,9 +39,17 @@ void pre_order(Node* node){
     if(node->left != nullptr){
         pre_order(node->left);
     }
-
     if(node->right != nullptr){
         pre_order(node->right);
+    }
+}
+void in_order(Node* node){
+    if(node->left != nullptr){
+        in_order(node->left);
+    }
+    cout << node->data << "->";
+    if(node->right != nullptr){
+        in_order(node->right);
     }
 }
 
@@ -103,7 +111,7 @@ Node* bst_minimum(Node* root){
     return node;
 }
 
-Node* transplant_bst(Node* root, Node* current_node, Node* new_node){
+Node* bst_transplant(Node* root, Node* current_node, Node* new_node){
     if(root == current_node){
         root = new_node;
         return root;
@@ -119,37 +127,101 @@ Node* transplant_bst(Node* root, Node* current_node, Node* new_node){
 Node* bst_delete(Node* root, Node* node){
     Node* smallest_node;
     if(node->left == nullptr)
-        root = transplant_bst(root,node,node->right);
+        root = bst_transplant(root,node,node->right);
     else if(node->right == nullptr)
-        root = transplant_bst(root,node,node->left);
+        root = bst_transplant(root,node,node->left);
     else{
         smallest_node = bst_minimum(node->right);
         if(smallest_node->parent != node){
-            root = transplant_bst(root,smallest_node,smallest_node->right);
+            root = bst_transplant(root,smallest_node,smallest_node->right);
             add_right_node(smallest_node,node->right);
         }
-            root = transplant_bst(root,node,smallest_node);
+            root = bst_transplant(root,node,smallest_node);
             add_left_node(smallest_node,node->left);
     }
     delete node;
 
     return root;
 }
+int bst_height(Node* root){
+    if(root == nullptr) return 0;
+    int lheight = bst_height(root->left);
+    int rheight = bst_height(root->right);
+
+    return 1+max(lheight,rheight);
+
+}
+int bst_diameter(Node* root){
+   if(root == nullptr) return 0;
+   int l_height = bst_height(root->left);
+   int r_height = bst_height(root->right);
+   int l_diameter = bst_diameter(root->left);
+   int r_diameter = bst_diameter(root->right);
+   int dia = max(l_height + r_height +1,max(l_diameter,r_diameter));
+   return dia;
+}
+  bool isBST(Node* root, int min, int max){
+        if(root == nullptr) return true;
+        if(root->data <= min || root->data > max) return false;
+
+        return isBST(root->left, min, root->data) &&
+               isBST(root->right,root->data,max);
+    }
+
+Node* invert(Node* root){
+    if(root == nullptr) return NULL;
+    invert(root->left);
+    invert(root->right);
+    swap(root->left,root->right);
+    return root;
+}
+int sum(Node* root){
+    int addition = root->data + root->left->data + root->right->data;
+    return addition;
+}
 
 int main(){
+    int min = INT_MIN;
+    int max = INT_MAX;
+    //creating a bst
     Node* root = create_bst();
+    //checking wheather the tree is bst or not
+    cout<<"BST or NOT"<<endl;
+    bool bst = isBST(root,min,max);
+    string x = (bst) ? "IsBST ":"NotBST";
+    cout<<x<<endl;
+    //pre order traversal
+    cout<<"BST in pre order:"<<endl;
+    pre_order(root);
+    //in order traversal
+    cout<<"BST in In order:"<<endl;
+    in_order(root);
+    cout<<"\n";
+    //height of a bst
+    int depth = bst_height(root);
+    cout<<endl<<"Height of the bst :"<<depth<<endl;
+    //diametre of a bst
+    int diameter = bst_diameter(root);
+    cout<<"Diameter of the tree is :"<<diameter<<endl;
+    //Invert a bst
+    int add = sum(root);
+    cout<<"Sum of root "<<add<<endl;
+    root = invert(root);
+    cout<<"After Inverting"<<endl;
     pre_order(root);
     cout<<"\n";
+
+
     Node *node1,*node2;
-    node1 = search_bst(root,10);
+    node1 = search_bst(root,10); //searching a node from bst
 
     if(node1 != nullptr){
-         cout<<node1->data<<" deleted from bst"<<endl;
+         cout<<node1->data<<" deleted from bst."<<endl;//deleting a node
          root = bst_delete(root,node1);
     }
     else cout<<"node is not found in bst."<<endl;
 
-    cout<<"New node :"<<endl;
+    cout<<"After deleting 10 "<<endl;
     pre_order(root);
 
     return 0;
